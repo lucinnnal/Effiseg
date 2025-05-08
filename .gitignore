@@ -1,0 +1,8 @@
+# Ignore all files in the gtFine and leftImg8bit directories
+data/gtFine
+data/leftImg8bit
+
+# DS_Store files, pycaches, and other common ignores
+**/.DS_Store
+.DS_Store
+__pycache__/
