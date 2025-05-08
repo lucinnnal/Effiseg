@@ -9,7 +9,6 @@ except:
 from pathlib import Path
 from base import BaseMMSeg
 import utils
-from config import dataset_dir
 
 CITYSCAPES_CONFIG_PATH = Path(__file__).parent / "config" / "cityscapes.py"
 CITYSCAPES_CATS_PATH = Path(__file__).parent / "config" / "cityscapes.yml"
@@ -25,8 +24,7 @@ class CityscapesDataset(BaseMMSeg):
 
     def update_default_config(self, config):
 
-        root_dir = dataset_dir()
-        path = Path(root_dir) / "dataset"
+        path = Path(__file__).parent / "dataset"
         config.data_root = path
 
         config.data[self.split]["data_root"] = path
@@ -42,14 +40,5 @@ class CityscapesDataset(BaseMMSeg):
         return labels_copy
 
 if __name__ == "__main__":
-
-
-    root_dir = dataset_dir()
-    path = Path(root_dir) / "dataset"
-    if not os.path.exists(path):
-        os.makedirs(path)
-        print(f"Create {path}")
-    else:
-        print(f"{path} already exists")
-    dataset = CityscapesDataset(1024, 512, "train")
+    dataset = CityscapesDataset(1024, 512, "train", normalization="vit")
     print(dataset[1])
