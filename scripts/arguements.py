@@ -1,37 +1,28 @@
 import argparse
+from argparse import ArgumentParser
 
 def get_arguments():
-    parser = argparse.ArgumentParser()
-    # ======================== seed ======================== #
-    parser.add_argument('--seed', type=int, default=42)
+    parser = ArgumentParser()
+    parser.add_argument('--cuda', action='store_true', default=True) 
+    parser.add_argument('--model', default="SegformerB0")
 
-    # ======================== train, test ======================== #
-    parser.add_argument('--is_inference', type=bool, default=False)
-
-    # ======================== data ======================== #
-    parser.add_argument('--data_path', type=str, default='data/')
-    parser.add_argument('--data_name', type=str, default='mnist')
-    parser.add_argument('--bf16', type=bool, default=False)
-
-    # ======================== model ======================== #
-    parser.add_argument('--model', type=str, default='cnn')
-    parser.add_argument('--model_size', type=str, default='small')
-    parser.add_argument('--num_classes', type=int, default=10)
-    parser.add_argument('--conv_module', type=str, default='cnn')
-    parser.add_argument('--fc_module', type=str, default='linear')
-    parser.add_argument('--grid_size', type=int, default=5)
-
-    # ======================== training ======================== #
-    parser.add_argument('--num_train_epochs', type=int, default=100)
-    parser.add_argument('--eval_steps', type=int, default=100)
-    parser.add_argument('--learning_rate', type=float, default=1e-3, help='Learning rate')
-    parser.add_argument('--warmup_ratio', type=float, default=0.1)
-    parser.add_argument('--per_device_train_batch_size', type=int, default=32)
-    parser.add_argument('--per_device_eval_batch_size', type=int, default=32)
-    parser.add_argument('--gradient_accumulation_steps', type=int, default=4)
-
-    # ======================== save ======================== #
-    parser.add_argument('--save_dir', type=str, default='model')
-    parser.add_argument('--load_dir', type=str, default='model')
-
-    return parser.parse_args()
+    parser.add_argument('--port', type=int, default=8097)
+    parser.add_argument('--dataset',default="cityscapes", choices=['ACDC','cityscapes','NYUv2'])
+    parser.add_argument('--datadir', default="/path/to/cityscapes/")
+    parser.add_argument('--height', type=int, default=512)
+    parser.add_argument('--num-epochs', type=int, default=500)
+    parser.add_argument('--num-workers', type=int, default=4)
+    parser.add_argument('--batch-size', type=int, default=4)
+    parser.add_argument('--steps-loss', type=int, default=50)
+    parser.add_argument('--steps-plot', type=int, default=50)
+    parser.add_argument('--epochs-save', type=int, default=0)   
+    parser.add_argument('--savedir', default = 'ckpt')
+    parser.add_argument('--savedate', default=True)
+    parser.add_argument('--visualize', action='store_true',default=False)
+    parser.add_argument('--distillation-type', default='ckpt', type=str, help="")
+    parser.add_argument('--iouTrain', action='store_true', default=False) 
+    parser.add_argument('--iouVal', action='store_true', default=True)  
+    parser.add_argument("--device", default='cuda', help="Device on which the network will be trained. Default: cuda")
+    parser.add_argument('--student-pretrained',default= True)
+    
+    return parser

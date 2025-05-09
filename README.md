@@ -1,3 +1,6 @@
 # EfficientSeg
+Transformer based KD project ongoing (reference to TransKD paper, https://arxiv.org/abs/2202.13393)
 
-Transformer 기반 Cityscapes 경량화 실험 프로젝트
+# Environment
+conda create -n effiseg python=3.10
+pip install -r requirements.txt
