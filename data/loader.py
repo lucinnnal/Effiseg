@@ -1,42 +1,68 @@
-from torch.utils.data import DataLoader
-from torch.utils.data.distributed import DistributedSampler
+import sys
+import logging
+import warnings
+warnings.filterwarnings("ignore")
 
-class Loader(DataLoader):
-    def __init__(self, dataset, batch_size, num_workers, distributed, split):
-        if distributed:
-            sampler = DistributedSampler(dataset, shuffle=True)
-            super().__init__(
-                dataset,
-                batch_size=batch_size,
-                shuffle=False,
-                num_workers=num_workers,
-                pin_memory=True,
-                sampler=sampler,
-            )
-        else:
-            super().__init__(
-                dataset,
-                batch_size=batch_size,
-                shuffle=True,
-                num_workers=num_workers,
-                pin_memory=True,
-            )
+from torch.utils import data
+from dataset import CityScapes_DataSet
+import numpy as np
 
-        self.base_dataset = self.dataset
+def get_dataloader(args, split='train'):
+    """
+    CityScapes 데이터셋의 DataLoader를 생성하는 함수
+    
+    Args:
+        args: 학습 관련 인자들을 담은 객체
+        split (str): 'train' 또는 'val' (기본값: 'train')
+    
+    Returns:
+        torch.utils.data.DataLoader: 설정된 DataLoader 객체
+    """
+    IMG_MEAN = np.array((104.00698793, 116.66876762, 122.67891434), dtype=np.float32)
+    
+    if split == 'train':
+        h, w = map(int, args.input_size.split(','))
+        dataset = CityScapes_DataSet(
+            root=args.data_dir,
+            list_path='./dataset/list/cityscapes/train.lst',
+            max_iters=args.num_steps * args.batch_size,
+            crop_size=(h, w),
+            scale=args.random_scale,
+            mirror=args.random_mirror,
+            mean=IMG_MEAN
+        )
+        
+        dataloader = data.DataLoader(
+            dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            num_workers=4,
+            pin_memory=True
+        )
+    
+    elif split == 'val':
+        dataset = CityScapes_DataSet(
+            root=args.data_dir,
+            list_path='./dataset/list/cityscapes/val.lst',
+            crop_size=(1024, 2048),
+            mean=IMG_MEAN,
+            scale=False,
+            mirror=False
+        )
+        
+        dataloader = data.DataLoader(
+            dataset,
+            batch_size=1,
+            shuffle=False,
+            pin_memory=True
+        )
+    
+    else:
+        raise ValueError(f"Invalid split: {split}. Choose either 'train' or 'val'")
+        
+    return dataloader
 
-    @property
-    def unwrapped(self):
-        return self.base_dataset.unwrapped
-
-    def set_epoch(self, epoch):
-        if isinstance(self.sampler, DistributedSampler):
-            self.sampler.set_epoch(epoch)
-
-    def get_diagnostics(self, logger):
-        return self.base_dataset.get_diagnostics(logger)
-
-    def get_snapshot(self):
-        return self.base_dataset.get_snapshot()
-
-    def end_epoch(self, epoch):
-        return self.base_dataset.end_epoch(epoch)
+if __name__ == '__main__':
+    args = TrainOptions().initialize()
+    train_loader = get_dataloader(args, 'train')
+    val_loader = get_dataloader(args, 'val')
