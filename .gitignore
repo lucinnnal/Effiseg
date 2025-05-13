@@ -7,3 +7,4 @@ data/cityscapes/
 __pycache__/
 *.pyc
 data/lst.py
+*.pth

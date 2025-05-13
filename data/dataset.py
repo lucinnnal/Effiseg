@@ -157,6 +157,7 @@ class CityScapes_Testdataset(Dataset):
     def __getitem__(self, index):
         datafiles = self.files[index]
         image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
+        breakpoint()
         size = image.shape
         name = osp.splitext(osp.basename(datafiles["img"]))[0]
         image = np.asarray(image, np.float32)

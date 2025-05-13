@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 
 from utils import init_weights, resize_pos_embed
-from blocks import Block
+from models.Segmenter.blocks import Block
 
 from timm.models.layers import DropPath
 from timm.models.layers import trunc_normal_
