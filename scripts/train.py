@@ -25,7 +25,7 @@ from utils import netParams
 from models.Segformer import mit_b0,mit_b1
 
 from dataset import NYUv2,cityscapes, ACDC
-from transform import Relabel, ToLabel, Colorize
+from data.transform import Relabel, ToLabel, Colorize
 import importlib
 from iouEval import iouEval, getColorEntry
 from arguments import get_arguments

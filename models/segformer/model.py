@@ -14,8 +14,6 @@ from mmseg.ops import resize
 import math
 from collections import OrderedDict
 
-
-
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
@@ -471,17 +469,6 @@ class mit_b5(MixVisionTransformer):
             drop_rate=0.0, drop_path_rate=0.1, decoderembed_dim=768)
 
 def load_model_weights(model, checkpoint_path, device='cpu'):
-    """
-    모델의 가중치를 로드하는 함수
-    
-    Args:
-        model: 가중치를 로드할 모델
-        checkpoint_path: 체크포인트 파일 경로
-        device: 모델을 로드할 디바이스 (기본값: 'cpu')
-    
-    Returns:
-        loaded_model: 가중치가 로드된 모델
-    """
     # 체크포인트 로드
     state_dict = torch.load(checkpoint_path, map_location=device)
     
@@ -525,5 +512,8 @@ if __name__ == '__main__':
     teacher_path = './segformerb2_teacher_cityscapes.pth'
     model = load_model_weights(model, teacher_path)
 
+    test_dataset = CityScapes_Testdataset(root='data/cityscapes', list_path='../../data/test.lst')
+    breakpoint()
+    img, label, _, _ = test_dataset[0]
     breakpoint()
 
