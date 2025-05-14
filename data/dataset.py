@@ -8,6 +8,14 @@ import torchvision
 import cv2
 from torch.utils.data import Dataset
 
+import os
+import sys
+current_dir = os.path.dirname(os.path.abspath(__file__))
+root_dir = os.path.abspath(os.path.join(current_dir, "../"))
+sys.path.append(root_dir)
+
+from models.segformer.model import mit_b0, mit_b2, load_model_weights
+
 def set_seed(seed=42):
     random.seed(seed)
     np.random.seed(seed)
@@ -137,41 +145,92 @@ class CityScapes_Testdataset(Dataset):
         self.root = root
         self.list_path = list_path
         self.crop_h, self.crop_w = crop_size
-        self.mean = (104.00698793, 116.66876762, 122.67891434)
-        # self.mean_bgr = np.array([104.00698793, 116.66876762, 122.67891434])
+        self.mean = mean
         self.img_ids = [i_id.strip().split() for i_id in open(list_path)]
         self.files = [] 
-        # for split in ["train", "trainval", "val"]:
+        
+        # id_to_trainid 매핑 추가
+        self.id_to_trainid = {-1: 255, 0: 255, 1: 255, 2: 255,
+                              3: 255, 4: 255, 5: 255, 6: 255,
+                              7: 0, 8: 1, 9: 255, 10: 255, 11: 2, 12: 3, 13: 4,
+                              14: 255, 15: 255, 16: 255, 17: 5,
+                              18: 255, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14,
+                              28: 15, 29: 255, 30: 255, 31: 16, 32: 17, 33: 18}
+
         for item in self.img_ids:
-            
-            image_path = item[0]
+            image_path, label_path = item
             name = osp.splitext(osp.basename(image_path))[0]
             img_file = osp.join(self.root, image_path)
+            label_file = osp.join(self.root, label_path)
             self.files.append({
-                "img": img_file
+                "img": img_file,
+                "label": label_file,
+                "name": name
             })
 
     def __len__(self):
         return len(self.files)
 
+    def id2trainId(self, label, reverse=False):
+        label_copy = label.copy()
+        if reverse:
+            for v, k in self.id_to_trainid.items():
+                label_copy[label == k] = v
+        else:
+            for k, v in self.id_to_trainid.items():
+                label_copy[label == k] = v
+        return label_copy
+
     def __getitem__(self, index):
         datafiles = self.files[index]
         image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
-        breakpoint()
+        label = cv2.imread(datafiles["label"], cv2.IMREAD_GRAYSCALE)
+        
+        # 원본 크기 저장
         size = image.shape
-        name = osp.splitext(osp.basename(datafiles["img"]))[0]
+        name = datafiles["name"]
+        
+        # 이미지와 레이블 리사이즈 (512x1024)
+        image = cv2.resize(image, (1024, 512), interpolation=cv2.INTER_LINEAR)
+        label = cv2.resize(label, (1024, 512), interpolation=cv2.INTER_NEAREST)
+        
+        # id to trainId 변환
+        label = self.id2trainId(label)
+        
+        # 전처리
         image = np.asarray(image, np.float32)
         image -= self.mean
         
-        img_h, img_w, _ = image.shape
-        pad_h = max(self.crop_h - img_h, 0)
-        pad_w = max(self.crop_w - img_w, 0)
-        if pad_h > 0 or pad_w > 0:
-            image = cv2.copyMakeBorder(image, 0, pad_h, 0, 
-                pad_w, cv2.BORDER_CONSTANT, 
-                value=(0.0, 0.0, 0.0))
+        # CHW 형식으로 변환
         image = image.transpose((2, 0, 1))
-        return image, size, name
+        
+        return image, label, size, name
+
+def calculate_miou(pred, label, num_classes=19):
+    """
+    Calculates mean IoU between prediction and ground truth
+    """
+    ious = []
+    pred = pred.astype(np.uint8)
+    label = label.astype(np.uint8)
+    
+    # Calculate IoU for each class
+    for class_idx in range(num_classes):
+        pred_mask = pred == class_idx
+        label_mask = label == class_idx
+        
+        intersection = np.logical_and(pred_mask, label_mask).sum()
+        union = np.logical_or(pred_mask, label_mask).sum()
+        
+        if union == 0:
+            iou = 0
+        else:
+            iou = intersection / union
+        ious.append(iou)
+    
+    # Calculate mean IoU
+    miou = np.mean(ious)
+    return miou, ious
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
@@ -191,7 +250,7 @@ if __name__ == '__main__':
         [70, 130, 180],  # 10: sky
         [220, 20, 60],   # 11: person
         [255, 0, 0],     # 12: rider
-        [0, 0, 142],     # 13: car
+        [0, 0, 142],     # 13: cars
         [0, 0, 70],      # 14: truck
         [0, 60, 100],    # 15: bus
         [0, 80, 100],    # 16: train
@@ -200,35 +259,61 @@ if __name__ == '__main__':
     ]
 
     root = ''
-    list_path = './train.lst'
-    dataset = CityScapes_DataSet(root, list_path)
-    image, label, size, name = dataset[0]
-    
+    list_path = './test.lst'
+    dataset = CityScapes_Testdataset(root, list_path)
+    image, label, size, name = dataset[2]
 
+    model = mit_b2() # outputs 20 class segmentation map
+    model = load_model_weights(model, '../models/segformer/segformerb2_teacher_cityscapes.pth')
+    model.eval()
+
+    with torch.no_grad():
+        logits = model(torch.from_numpy(image).unsqueeze(0))
+        pred = torch.argmax(logits[1], dim=1).squeeze(0).numpy()
+        breakpoint()
+        
+        # Calculate mIoU
+        miou, class_ious = calculate_miou(pred, label)
+        
+        print(f"\nMean IoU: {miou:.4f}")
+        print("\nClass-wise IoUs:")
+        class_names = ['road', 'sidewalk', 'building', 'wall', 'fence', 
+                      'pole', 'traffic light', 'traffic sign', 'vegetation', 
+                      'terrain', 'sky', 'person', 'rider', 'car', 'truck',
+                      'bus', 'train', 'motorcycle', 'bicycle']
+        
+        for idx, (class_name, iou) in enumerate(zip(class_names, class_ious)):
+            print(f"{class_name}: {iou:.4f}")
+
+    # 시각화
     plt.figure(figsize=(15, 5))
-    plt.subplot(121)
-    # CHW -> HWC로 변환하고 mean 값 다시 더하기
+
+    # 원본 이미지
+    plt.subplot(131)
     img_display = image.transpose(1, 2, 0) + np.array(dataset.mean)
     plt.imshow(img_display.astype(np.uint8))
     plt.title('Original Image')
     plt.axis('off')
-    
-    # 레이블 맵
-    plt.subplot(122)
+
+    # Ground Truth
+    plt.subplot(132)
     label_rgb = np.zeros((*label.shape, 3), dtype=np.uint8)
-    for class_idx in range(19):  # 19개 클래스
+    for class_idx in range(19):
         mask = label == class_idx
         label_rgb[mask] = COLORS[class_idx]
     plt.imshow(label_rgb)
-    plt.title('Label Map')
+    plt.title('Ground Truth')
     plt.axis('off')
+
+    # 예측 결과
+    plt.subplot(133)
+    pred_rgb = np.zeros((*pred.shape, 3), dtype=np.uint8)
+    for class_idx in range(19):
+        mask = pred == class_idx
+        pred_rgb[mask] = COLORS[class_idx]
+    plt.imshow(pred_rgb)
+    plt.title('Prediction')
+    plt.axis('off')
+
     plt.tight_layout()
     plt.show()
-    print(f"Image shape: {image.shape}")
-    print(f"Label shape: {label.shape}")
-    print(f"Original size: {size}")
-    print(f"Name: {name}")
-    
-    # 유니크한 클래스 확인
-    unique_classes = np.unique(label)
-    print(f"Unique classes in this image: {unique_classes}")
