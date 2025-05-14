@@ -507,13 +507,7 @@ def load_model_weights(model, checkpoint_path, device='cpu'):
     return model
 
 if __name__ == '__main__':
-    # 사용 예시
+    # Load Model
     model = mit_b2()
     teacher_path = './segformerb2_teacher_cityscapes.pth'
     model = load_model_weights(model, teacher_path)
-
-    test_dataset = CityScapes_Testdataset(root='data/cityscapes', list_path='../../data/test.lst')
-    breakpoint()
-    img, label, _, _ = test_dataset[0]
-    breakpoint()
-

@@ -62,7 +62,6 @@ class Traindataset(Dataset):
         self.images_root += subset
         self.labels_root += subset
 
-        print (self.images_root)
         self.filenames = [os.path.join(dp, f) for dp, dn, fn in os.walk(os.path.expanduser(self.images_root)) for f in fn if is_image(f)]
         self.filenames.sort()
 
@@ -155,14 +154,14 @@ class Testdataset(Dataset):
         if self.target_transform is not None:
             label = self.target_transform(label)
 
-        return image, label, filename, filenameGt
+        return image, label
 
     def __len__(self):
         return len(self.filenames)
 
-def get_test_transform():
-    input_transform = Compose([Resize(512, interpolation=InterpolationMode.BILINEAR), ToTensor()])
-    target_transform = Compose([Resize(128, interpolation=InterpolationMode.NEAREST), ToLabel(), Relabel(255, 19)])
+def get_test_transform(inpuut_size=512, target_size=128):
+    input_transform = Compose([Resize(inpuut_size, interpolation=InterpolationMode.BILINEAR), ToTensor()])
+    target_transform = Compose([Resize(target_size, interpolation=InterpolationMode.NEAREST), ToLabel(), Relabel(255, 19)])
     
     return input_transform, target_transform
 
@@ -176,9 +175,9 @@ if __name__ == '__main__':
     image, label = dataset[0]
     breakpoint()
     """
-    
+
     # for testing
     input_transform, target_transform = get_test_transform()
     dataset = Testdataset(root='../data/cityscapes', input_transform=input_transform, target_transform=target_transform, subset='test')
-    image, label, size, name = dataset[0]
+    image, label = dataset[0]
     breakpoint()

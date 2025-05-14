@@ -1,10 +1,10 @@
 # Ignore all files in the gtFine and leftImg8bit directories
-data/cityscapes/
+src/data/cityscapes/
 
 # DS_Store files, pycaches, and other common ignores
 **/.DS_Store
 .DS_Store
-__pycache__/
+src/models/segformer/__pycache__/
 *.pyc
 data/lst.py
 *.pth
