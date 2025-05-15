@@ -1,3 +1,8 @@
+# Main code for training ERFNet model in Cityscapes dataset
+# Sept 2017
+# Eduardo Romera
+#######################
+
 import os
 from pickle import FALSE
 import random
@@ -20,10 +25,10 @@ from utils import netParams
 from models.Segformer import mit_b0,mit_b1
 
 from dataset import NYUv2,cityscapes, ACDC
-from data.transform import Relabel, ToLabel, Colorize
+from transform import Relabel, ToLabel, Colorize
 import importlib
 from iouEval import iouEval, getColorEntry
-from arguments import get_arguments
+
 from shutil import copyfile
 NUM_CHANNELS = 3
 NUM_CLASSES = 20 
@@ -71,6 +76,7 @@ class MyCoTransform(object):
 
         return input, target
 
+
 class CrossEntropyLoss2d(torch.nn.Module):
 
     def __init__(self, weight=None):
@@ -80,13 +86,6 @@ class CrossEntropyLoss2d(torch.nn.Module):
 
     def forward(self, outputs, targets):
         return self.loss(torch.nn.functional.log_softmax(outputs, dim=1), targets)
-
-
-def set_seed(seed):
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
 
 
 def train(args, model):
@@ -396,11 +395,33 @@ def main(args):
     f.close()
     """
 
+
     print("========== STUDENT TRAINING ===========")
     model = train(args, model)
 
     print("========== TRAINING FINISHED ===========")
 
 if __name__ == '__main__':
-    args = get_arguments()
-    main(args)
+    parser = ArgumentParser()
+    parser.add_argument('--cuda', action='store_true', default=True) 
+    parser.add_argument('--model', default="SegformerB0")
+
+    parser.add_argument('--port', type=int, default=8097)
+    parser.add_argument('--dataset',default="cityscapes", choices=['ACDC','cityscapes','NYUv2'])
+    parser.add_argument('--datadir', default="/path/to/cityscapes/")
+    parser.add_argument('--height', type=int, default=512)
+    parser.add_argument('--num-epochs', type=int, default=500)
+    parser.add_argument('--num-workers', type=int, default=4)
+    parser.add_argument('--batch-size', type=int, default=4)
+    parser.add_argument('--steps-loss', type=int, default=50)
+    parser.add_argument('--steps-plot', type=int, default=50)
+    parser.add_argument('--epochs-save', type=int, default=0)   
+    parser.add_argument('--savedir', default = 'ckpt')
+    parser.add_argument('--savedate', default=True)
+    parser.add_argument('--visualize', action='store_true',default=False)
+    parser.add_argument('--distillation-type', default='ckpt', type=str, help="")
+    parser.add_argument('--iouTrain', action='store_true', default=False) 
+    parser.add_argument('--iouVal', action='store_true', default=True)  
+    parser.add_argument("--device", default='cuda', help="Device on which the network will be trained. Default: cuda")
+    parser.add_argument('--student-pretrained',default= True)
+    main(parser.parse_args())
