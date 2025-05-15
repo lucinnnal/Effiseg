@@ -1,8 +1,3 @@
-# Main code for training ERFNet model in Cityscapes dataset
-# Sept 2017
-# Eduardo Romera
-#######################
-
 import os
 from pickle import FALSE
 import random

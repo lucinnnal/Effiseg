@@ -8,3 +8,4 @@ src/models/segformer/__pycache__/
 *.pyc
 data/lst.py
 *.pth
+__pycache__/

@@ -12,7 +12,9 @@ pip install ftfy regex
 pip install -r requirements.txt
 
 # Status
-dataset finished
+- dataset finished
+- model load finished
+- evaluation baseline finished
 
 # Notion
 https://www.notion.so/Final-Project-1-1ed9f61d80ff80ba99cadf4ac80a44e1

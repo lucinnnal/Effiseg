@@ -15,7 +15,7 @@ import cv2
 from PIL import Image, ImageOps
 from torchvision.transforms import Compose, CenterCrop, Normalize, Resize
 from torchvision.transforms import ToTensor, ToPILImage, InterpolationMode
-from transform import Relabel, ToLabel, Colorize
+from src.data.transform import Relabel, ToLabel, Colorize
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.abspath(os.path.join(current_dir, "../"))
@@ -154,7 +154,7 @@ class Testdataset(Dataset):
         if self.target_transform is not None:
             label = self.target_transform(label)
 
-        return image, label
+        return image, label, filename, filenameGt
 
     def __len__(self):
         return len(self.filenames)
