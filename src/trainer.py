@@ -15,8 +15,8 @@ class BaseTrainer(Trainer):
         self.loss_fn = CrossEntropyLoss2d()
         
     def compute_loss(self, model, inputs, num_items_in_batch = None, return_outputs=False):
-        image = inputs['image']
-        label = inputs['label']
+        image = inputs['piexel_values']
+        label = inputs['labels']
         # Forward pass
         output = model(image)
         # Compute loss
@@ -31,8 +31,8 @@ class BaseTrainer(Trainer):
             model: nn.Module,
             inputs: Dict[str, Union[torch.Tensor, Any]],
             prediction_loss_only: bool,
-            ignore_keys: Optional[List[str]] = None,
-    ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
+            ignore_keys: Optional[List[str]] = ["patch_embeddings", "feature_map"],
+    ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]: # Optional은 Tensor 또는 None이 올 수 있다는 뜻 
         
         model.eval()
         

@@ -396,10 +396,13 @@ class MixVisionTransformer(nn.Module):
         x = self.dropout(_c)
         x = self.linear_pred(x)
         if is_feat:
-            return features, x, embeds
+            return  {
+                "feature_map" : features, 
+                "logits" : x, 
+                "patch_embeddings" : embeds
+            }   # features, x, embeds
         else:
-            return x
-
+            return {"logits": x}  # x
 
 class DWConv(nn.Module):
     def __init__(self, dim=768):

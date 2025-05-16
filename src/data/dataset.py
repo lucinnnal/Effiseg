@@ -83,7 +83,10 @@ class Traindataset(Dataset):
         if self.co_transform is not None:
             image, label = self.co_transform(image, label)
 
-        return image, label
+        return {
+            "pixel_values" : image, 
+            "labels": label
+        }
 
     def __len__(self):
         return len(self.filenames)

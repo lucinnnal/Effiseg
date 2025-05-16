@@ -31,4 +31,4 @@ class CrossEntropyLoss2d(nn.Module):
         self.loss = torch.nn.NLLLoss(self.weight)
 
     def forward(self, outputs, targets):
-        return self.loss(torch.nn.functional.log_softmax(outputs, dim=1), targets)
+        return self.loss(torch.nn.functional.log_softmax(outputs['logits'], dim=1), targets)
