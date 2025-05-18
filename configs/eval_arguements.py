@@ -10,7 +10,7 @@ def get_arguments():
     parser.add_argument('--num-workers', type=int, default=0, help='number of workers for data loading')
     parser.add_argument('--batch-size', type=int, default=4)
     parser.add_argument('--cpu', type=str, default='True', help='use CPU for evaluation')
-    parser.add_argument('--model_type', type=str, default='Segformer-b2', help='model type to use for evaluation')
+    parser.add_argument('--model', type=str, default='SegformerB2', help='model type to use for evaluation')
     parser.add_argument('--num_classes', type=int, default=20, help='number of classes in the dataset')
     
     return parser.parse_args()

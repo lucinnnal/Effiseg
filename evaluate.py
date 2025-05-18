@@ -2,7 +2,7 @@ import os
 import importlib
 import time
 from PIL import Image
-from arguements import get_arguments
+from configs.eval_arguements import get_arguments
 
 import warnings
 warnings.filterwarnings("ignore")

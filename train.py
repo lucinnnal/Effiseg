@@ -10,11 +10,10 @@ import transformers
 from transformers import TrainingArguments
 import wandb
 
-from arguments import get_arguments
+from configs.train_arguements import get_arguments
 
-from src.trainer import Trainer
-from src.dataset.get_dataset import get_dataset
-from src.model.get_model import get_model
+from src.data.get_dataset import get_dataset
+from src.models.get_model import get_model
 from src.trainer import BaseTrainer
 from src.utils.compute_metrics import compute_metrics
 
@@ -26,18 +25,17 @@ def set_seed(seed):
 
 def main(args):
 
-    device = torch.device('mps') if torch.backends.mps.is_available() else torch.device('cpu')
-    print(device)
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    print(f"device : {device}")
     set_seed(42)
 
     ## =================== Data =================== ##
-    train_dataset, val_dataset, data_collator = get_dataset(args)
+    train_dataset, val_dataset = get_dataset(args)
 
     ## =================== Model =================== ##
     model = get_model(args)
 
     ## =================== Trainer =================== ##
-
     wandb.init(project='Effiseg', name=f'{args.save_dir}')
 
     training_args = TrainingArguments(
@@ -51,7 +49,7 @@ def main(args):
         warmup_ratio=args.warmup_ratio,
         logging_steps=10,
         metric_for_best_model="mean_iou",
-        save_strategy="epoch",
+        save_strategy="steps",
         save_total_limit=None,
         save_steps=args.save_steps,
         remove_unused_columns=False,
@@ -65,10 +63,9 @@ def main(args):
         train_dataset=train_dataset,
         eval_dataset=val_dataset,
         compute_metrics=compute_metrics,
-        data_collator=data_collator,
+        data_collator=None,
     )
 
-    
     trainer.train()
 
 

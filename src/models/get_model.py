@@ -17,15 +17,15 @@ def get_model(args):
     Returns:
         model: The initialized model.
     """
-    if args.model_type == "Segformer-b0":
+    if args.model == "SegformerB0":
         from models.segformer.model import mit_b0
         model = mit_b0()
 
-    elif args.model_type == "Segformer-b2":
+    elif args.model == "SegformerB2":
         from models.segformer.model import mit_b2
         model = mit_b2()
     else:
-        raise ValueError(f"Model type {args.model_type} not recognized. Please choose 'Segformer-b0' or 'Segformer-b2'.")
+        raise ValueError(f"Model type {args.model} not recognized. Please choose 'SegformerB0' or 'SegformerB2'.")
 
     return model
 
