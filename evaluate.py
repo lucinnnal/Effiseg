@@ -30,8 +30,10 @@ def set_seed(seed):
     torch.cuda.manual_seed_all(seed)
 
 def main(args):
-    set_seed(42) # Set random seed for reproducibility
-    device = "cuda" if not args.cpu else "cpu"
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    print(f"device : {device}")
+    set_seed(42)
+
     if(not os.path.exists(args.datadir)): 
         print ("Error: datadir could not be loaded")
         
@@ -52,7 +54,7 @@ def main(args):
 
     start = time.time()
 
-    for step, (images, labels, filename, filenameGt) in enumerate(loader):
+    for step, (images, labels) in enumerate(loader):
         if (not args.cpu):
             images = images.cuda()
             labels = labels.cuda()
@@ -64,7 +66,6 @@ def main(args):
             _,outputs,_ = model(images)
 
         iouEvalVal.addBatch(outputs.max(1)[1].unsqueeze(1).data, labels)
-        filenameSave = filename[0].split("leftImg8bit/")[1] 
 
         # print (step, filenameSave)
 

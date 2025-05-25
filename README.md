@@ -17,6 +17,8 @@ pip install -r requirements.txt
 - evaluation baseline finished
 - metrics code 
 - defining optimizer (todo)
+- evaluate.py modified
+- training.py, trainer.py modified
 
 # Notion
 https://www.notion.so/Final-Project-1-1ed9f61d80ff80ba99cadf4ac80a44e1

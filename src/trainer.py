@@ -5,8 +5,9 @@ from torch import nn
 
 from transformers.trainer import Trainer
 from src.utils.loss import CrossEntropyLoss2d
-
+from src.utils.poly import PolynomialLRDecay
 from typing import Dict, List, Tuple, Optional, Any, Union
+
 
 class BaseTrainer(Trainer):
     def __init__(self, **kwds):
@@ -40,3 +41,16 @@ class BaseTrainer(Trainer):
             eval_loss, pred, label = self.compute_loss(model,inputs,return_outputs = True)
         
         return (eval_loss,pred,label)
+    
+    def create_scheduler(self, num_training_steps: int, optimizer: Optional[torch.optim.Optimizer] = None):
+        if optimizer is None:
+            optimizer = self.optimizer
+
+        self.lr_scheduler = PolynomialLRDecay(
+            optimizer,
+            max_decay_steps=num_training_steps,
+            end_learning_rate=self.args.learning_rate,
+            power=1.0
+        )
+        
+        return self.lr_scheduler

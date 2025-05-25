@@ -20,6 +20,17 @@ def get_model(args):
     if args.model == "SegformerB0":
         from models.segformer.model import mit_b0
         model = mit_b0()
+        # Load pretrained weights if specified
+        if args.load_pretrained:
+            checkpoint_path = os.path.join(root_dir, "mit_b0.pth")
+            if os.path.exists(checkpoint_path):
+                save_model = torch.load(checkpoint_path, map_location=torch.device('cuda'))
+                model_dict =  model.state_dict()
+                state_dict = {k:v for k,v in save_model.items() if k in model_dict.keys()}
+                model_dict.update(state_dict)
+                model.load_state_dict(model_dict, strict=False)
+            else:
+                print(f"Checkpoint {checkpoint_path} does not exist. Skipping loading pretrained weights.")
 
     elif args.model == "SegformerB2":
         from models.segformer.model import mit_b2
@@ -29,8 +40,8 @@ def get_model(args):
 
     return model
 
-def load_segformer_weights(model, checkpoint_path, device='cpu'):
-    state_dict = torch.load(checkpoint_path, map_location=torch.device('cpu'))
+def load_segformer_weights(model, checkpoint_path, device='cuda'):
+    state_dict = torch.load(checkpoint_path, map_location=torch.device('cuda'))
      
     # 'module.' removal for DataParallel
     new_state_dict = OrderedDict()

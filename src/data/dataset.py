@@ -10,7 +10,9 @@ import sys
 
 import torch
 from torch.utils.data import Dataset
-
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.abspath(os.path.join(current_dir, "../.."))  # 한 단계 상위 디렉토리
+sys.path.append(parent_dir)
 import cv2
 from PIL import Image, ImageOps
 from torchvision.transforms import Compose, CenterCrop, Normalize, Resize
@@ -32,7 +34,7 @@ def is_image(filename):
     return any(filename.endswith(ext) for ext in EXTENSIONS)
 
 def is_label(filename):
-    return filename.endswith("gtFine_labelIds.png")
+    return filename.endswith("_labelTrainIds.png")
 
 def image_path(root, basename, extension):
     return os.path.join(root, f'{basename}{extension}')
@@ -157,7 +159,7 @@ class Testdataset(Dataset):
         if self.target_transform is not None:
             label = self.target_transform(label)
 
-        return image, label, filename, filenameGt
+        return image, label
 
     def __len__(self):
         return len(self.filenames)
@@ -183,4 +185,3 @@ if __name__ == '__main__':
     input_transform, target_transform = get_test_transform()
     dataset = Testdataset(root='../data/cityscapes', input_transform=input_transform, target_transform=target_transform, subset='test')
     image, label = dataset[0]
-    breakpoint()
