@@ -22,7 +22,7 @@ def get_model(args):
         model = mit_b0()
         # Load pretrained weights if specified
         if args.load_pretrained:
-            checkpoint_path = os.path.join(root_dir, "mit_b0.pth")
+            checkpoint_path = os.path.join(root_dir, 'ckpt', "mit_b0.pth")
             if os.path.exists(checkpoint_path):
                 save_model = torch.load(checkpoint_path, map_location=torch.device('cuda'))
                 model_dict =  model.state_dict()

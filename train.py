@@ -35,6 +35,7 @@ def main(args):
     ## =================== Model =================== ##
     model = get_model(args)
     model.to(device)
+    breakpoint()
 
     ## =================== Trainer =================== ##
     wandb.init(project='Effiseg', name=f'{args.save_dir}')
