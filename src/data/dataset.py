@@ -87,7 +87,7 @@ class Traindataset(Dataset):
 
         return {
             "pixel_values" : image, 
-            "labels": label
+            "labels": label.squeeze(0)
         }
 
     def __len__(self):

@@ -27,8 +27,9 @@ class CrossEntropyLoss2d(nn.Module):
         self.weight[17] = 10.396977
         self.weight[18] = 10.05567	
         self.weight[19] = 0
+        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
-        self.loss = torch.nn.NLLLoss(self.weight)
+        self.loss = torch.nn.NLLLoss(self.weight.to(device))
 
     def forward(self, outputs, targets):
         return self.loss(torch.nn.functional.log_softmax(outputs['logits'], dim=1), targets)

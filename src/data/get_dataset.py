@@ -33,7 +33,6 @@ def get_dataset(args):
 
     train_cotransformer = Cotransform(augment=args.augmentation, height=args.input_size, model=args.model)
     train_dataset = Traindataset(args.datadir, co_transform=train_cotransformer, subset='train')
-    breakpoint()
 
     val_cotransformer = Cotransform(augment=False, height=args.input_size, model=args.model)
     val_dataset = Traindataset(args.datadir, co_transform=val_cotransformer, subset='val')
